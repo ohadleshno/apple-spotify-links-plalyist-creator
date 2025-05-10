@@ -1,9 +1,12 @@
-import json
 import os
-import sys
 from datetime import datetime
-from xmlrpc.client import DateTime
 from dotenv import load_dotenv
+from src.cache_manager.output_cache import cache
+from src.cache_manager.file_constants import (
+    APPLE_TO_SPOTIFY_MATCHES,
+    MUSIC_LINKS_JSON,
+    INVALID_ALBUM_IDS
+)
 from spotify_playlist_creator import create_spotify_playlist
 
 # Load environment variables from .env file
@@ -16,8 +19,7 @@ def remove_invalid_album_ids(invalid_ids_file, matches_file, music_links_file):
         return
     
     # Load invalid IDs
-    with open(invalid_ids_file, 'r', encoding='utf-8') as f:
-        invalid_data = json.load(f)
+    invalid_data = cache.read_json(invalid_ids_file)
     
     invalid_ids = invalid_data.get("invalid_album_ids", [])
     if not invalid_ids:
@@ -27,9 +29,8 @@ def remove_invalid_album_ids(invalid_ids_file, matches_file, music_links_file):
     print(f"Found {len(invalid_ids)} invalid album IDs to remove.")
     
     # Update matches file
-    if os.path.exists(matches_file):
-        with open(matches_file, 'r', encoding='utf-8') as f:
-            matches_data = json.load(f)
+    if cache.file_exists(matches_file):
+        matches_data = cache.read_json(matches_file)
         
         # Filter out matches with invalid album IDs
         filtered_matches = []
@@ -53,14 +54,12 @@ def remove_invalid_album_ids(invalid_ids_file, matches_file, music_links_file):
         
         if removed_count > 0:
             matches_data["matched"] = filtered_matches
-            with open(matches_file, 'w', encoding='utf-8') as f:
-                json.dump(matches_data, f, indent=2)
+            cache.write_json(matches_file, matches_data)
             print(f"Removed {removed_count} invalid album references from {matches_file}")
     
     # Update music links file
-    if os.path.exists(music_links_file):
-        with open(music_links_file, 'r', encoding='utf-8') as f:
-            music_data = json.load(f)
+    if cache.file_exists(music_links_file):
+        music_data = cache.read_json(music_links_file)
         
         # Remove invalid album IDs
         album_ids = music_data.get("spotify", {}).get("ids", {}).get("albums", [])
@@ -90,8 +89,7 @@ def remove_invalid_album_ids(invalid_ids_file, matches_file, music_links_file):
                 music_data["spotify"]["links"] = filtered_links
                 print(f"Removed {removed_links} invalid album links from {music_links_file}")
             
-            with open(music_links_file, 'w', encoding='utf-8') as f:
-                json.dump(music_data, f, indent=2)
+            cache.write_json(music_links_file, music_data)
     
     # Remove the invalid IDs file
     try:
@@ -102,8 +100,7 @@ def remove_invalid_album_ids(invalid_ids_file, matches_file, music_links_file):
 
 def extract_spotify_ids_from_matches(matches_file):
     """Extract Spotify track and album IDs from the matches file"""
-    with open(matches_file, 'r', encoding='utf-8') as f:
-        matches_data = json.load(f)
+    matches_data = cache.read_json(matches_file)
     
     # Initialize IDs
     spotify_data = {
@@ -132,8 +129,7 @@ def extract_spotify_ids_from_matches(matches_file):
 
 def extract_spotify_ids_from_music_links(music_links_file):
     """Extract Spotify track and album IDs directly from music_links.json"""
-    with open(music_links_file, 'r', encoding='utf-8') as f:
-        music_data = json.load(f)
+    music_data = cache.read_json(music_links_file)
     
     # Get Spotify IDs that are already in the file
     spotify_data = {
@@ -258,29 +254,25 @@ def split_data_into_chunks(spotify_data, max_per_playlist=200):
 
 def main():
     """Main function"""
-    matches_file = "../outputs/apple_to_spotify_matches.json"
-    music_links_file = "../outputs/music_links.json"
-    invalid_ids_file = "../invalid_album_ids.json"
-    
     # Check if the invalid album IDs file exists and clean up if needed
-    if os.path.exists(invalid_ids_file):
+    if os.path.exists(INVALID_ALBUM_IDS):
         print("\nFound invalid album IDs file from a previous run.")
         choice = input("Do you want to clean up invalid album IDs from your data sources? (y/n): ").strip().lower()
         if choice == 'y':
-            remove_invalid_album_ids(invalid_ids_file, matches_file, music_links_file)
+            remove_invalid_album_ids(INVALID_ALBUM_IDS, APPLE_TO_SPOTIFY_MATCHES, MUSIC_LINKS_JSON)
     
     # Check if files exist
-    for file_path in [matches_file, music_links_file]:
-        if not os.path.exists(file_path):
+    for file_path in [APPLE_TO_SPOTIFY_MATCHES, MUSIC_LINKS_JSON]:
+        if not cache.file_exists(file_path):
             print(f"File not found: {file_path}")
             return
     
     # Extract Spotify IDs from matches
-    match_spotify_data = extract_spotify_ids_from_matches(matches_file)
+    match_spotify_data = extract_spotify_ids_from_matches(APPLE_TO_SPOTIFY_MATCHES)
     print(f"From matches: {len(match_spotify_data['ids']['tracks'])} tracks and {len(match_spotify_data['ids']['albums'])} albums")
     
     # Extract Spotify IDs from music links
-    music_spotify_data = extract_spotify_ids_from_music_links(music_links_file)
+    music_spotify_data = extract_spotify_ids_from_music_links(MUSIC_LINKS_JSON)
     print(f"From music links: {len(music_spotify_data['ids']['tracks'])} tracks and {len(music_spotify_data['ids']['albums'])} albums")
     
     # Combine the data

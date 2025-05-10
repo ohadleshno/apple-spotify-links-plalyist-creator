@@ -1,23 +1,30 @@
 import re
 import os
-import sys
-import csv
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse
 from dotenv import load_dotenv
+from src.cache_manager.output_cache import cache
+from src.cache_manager.file_constants import (
+    MUSIC_LINKS_JSON,
+    MUSIC_LINKS_CSV
+)
 
 # Load environment variables from .env file
 load_dotenv()
 
-def extract_links_from_file(file_path):
+def extract_links_from_file():
     """Extract all links from the CSV file"""
-    links = []
-    with open(file_path, 'r', encoding='utf-8') as file:
-        reader = csv.reader(file)
-        next(reader)  # Skip header row
-        for row in reader:
-            if row and row[0].strip():  # Check if row exists and first column is not empty
+    try:
+        # Read CSV using cache with header
+        csv_data = cache.read_csv(MUSIC_LINKS_CSV, has_header=True)
+        # Get the first column (links) from each row
+        links = []
+        for row in csv_data.values():
+            if row and row[0].strip():  # Check if row exists and first value is not empty
                 links.append(row[0].strip())
-    return links
+        return links
+    except Exception as e:
+        print(f"Error reading CSV file: {e}")
+        return []
 
 def separate_links(links):
     """Separate links into Apple Music, Spotify, and other links"""
@@ -97,29 +104,19 @@ def extract_spotify_ids(links):
         'playlists': list(set(playlist_ids))
     }
 
-def save_to_json(data, filename):
+def save_to_json(data):
     """Save the extracted data to a JSON file"""
-    import json
-    with open(filename, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=2)
-    print(f"Data saved to {filename}")
+    cache.write_json(MUSIC_LINKS_JSON, data)
+    print(f"Data saved to {MUSIC_LINKS_JSON}")
 
 def main():
-    # Check if file path is provided
-    if len(sys.argv) < 2:
-        print("Please provide the path to the CSV file")
-        print("Usage: python playlist_creator.py path/to/links.csv")
-        return
-        
-    file_path = sys.argv[1]
-    
-    # Check if file exists
-    if not os.path.exists(file_path):
-        print(f"File not found: {file_path}")
+    # Check if input file exists
+    if not cache.file_exists(MUSIC_LINKS_CSV):
+        print(f"File not found: {MUSIC_LINKS_CSV}")
         return
     
     # Extract links from file
-    links = extract_links_from_file(file_path)
+    links = extract_links_from_file()
     print(f"Found {len(links)} links in the file")
     
     # Separate links
@@ -145,8 +142,7 @@ def main():
         'other': other_links
     }
     
-    save_to_json(data, '../outputs/music_links.json')
-
+    save_to_json(data)
 
 if __name__ == "__main__":
     main() 

@@ -1,9 +1,9 @@
 import re
-import csv
-import os
 from datetime import datetime
+from src.cache_manager.output_cache import cache
+from src.cache_manager.file_constants import MUSIC_LINKS_CSV, CHAT_EXPORT
 
-def extract_music_links(filepath):
+def extract_music_links():
     """
     Extract music.apple.com and open.spotify.com links from a text file
     and save them to a CSV file with date information.
@@ -15,10 +15,9 @@ def extract_music_links(filepath):
     # Date pattern - looking for [DD/MM/YYYY, HH:MM:SS] format
     date_pattern = r'\[(\d{2}/\d{2}/\d{4})[^\]]*\]'
     
-    # Read the file
+    # Read the file using cache
     try:
-        with open(filepath, 'r', encoding='utf-8') as file:
-            content = file.read()
+        content = cache.read_text(CHAT_EXPORT)
     except Exception as e:
         print(f"Error reading file: {e}")
         return None
@@ -70,19 +69,16 @@ def extract_music_links(filepath):
     apple_count = sum(1 for _, platform, _ in all_unique_links if platform == "Apple Music")
     spotify_count = sum(1 for _, platform, _ in all_unique_links if platform == "Spotify")
     
-    # Save to CSV
-    output_file = "../music_links.csv"
     try:
-        with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(['Link', 'Platform', 'Date'])
-            writer.writerows(all_unique_links)
+        csv_data = [['Link', 'Platform', 'Date']]  # Header
+        csv_data.extend(all_unique_links)
+        cache.write_csv(MUSIC_LINKS_CSV, csv_data[1:], header=csv_data[0])
         
-        print(f"Successfully extracted {len(all_unique_links)} unique links to {output_file}")
+        print(f"Successfully extracted {len(all_unique_links)} unique links to {MUSIC_LINKS_CSV}")
         print(f"- Apple Music: {apple_count}")
         print(f"- Spotify: {spotify_count}")
         print(f"- Duplicates removed: {len(all_links_with_dates) - len(all_unique_links)}")
-        return output_file
+        return MUSIC_LINKS_CSV
     except Exception as e:
         print(f"Error writing CSV: {e}")
         return None
@@ -96,11 +92,9 @@ def clean_link(link):
     return link
 
 if __name__ == "__main__":
-    chat_file = "../_chat.txt"
-    
-    if not os.path.exists(chat_file):
-        print(f"File not found: {chat_file}")
+    if not cache.file_exists(CHAT_EXPORT):
+        print(f"File not found: {CHAT_EXPORT}")
     else:
-        output_file = extract_music_links(chat_file)
+        output_file = extract_music_links()
         if output_file:
             print(f"CSV file created: {output_file}") 

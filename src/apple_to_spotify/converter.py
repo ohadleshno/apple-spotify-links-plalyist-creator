@@ -2,8 +2,8 @@
 Module for handling the conversion from Apple Music to Spotify.
 """
 
-import json
-
+from src.cache_manager.output_cache import cache
+from src.cache_manager.file_constants import APPLE_TO_SPOTIFY_MATCHES
 from spotify_matcher import SpotifyTrackMatcher
 
 
@@ -13,15 +13,13 @@ class AppleToSpotifyConverter:
     @staticmethod
     def load_json_data(file_path):
         """Load the extracted music data from the JSON file"""
-        with open(file_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        return cache.read_json(file_path)
     
     @staticmethod
-    def save_results(results, output_file="apple_to_spotify_matches.json"):
+    def save_results(results):
         """Save results to a JSON file"""
-        with open(output_file, 'w', encoding='utf-8') as f:
-            json.dump(results, f, indent=2)
-        print(f"\nSaved match results to {output_file}")
+        cache.write_json(APPLE_TO_SPOTIFY_MATCHES, results)
+        print(f"\nSaved match results to {APPLE_TO_SPOTIFY_MATCHES}")
     
     @staticmethod
     def convert(json_file):
