@@ -96,21 +96,42 @@ export APPLE_MUSIC_KEY_FILE="path/to/private_key.p8"
 - For more information about the Apple Music API, see the [official documentation](https://developer.apple.com/documentation/applemusicapi).
 - For more information about the Spotify Web API, see the [official documentation](https://developer.spotify.com/documentation/web-api/).
 
-## Requirements
-
-Create a `requirements.txt` file with:
-
-```
-spotipy>=2.19.0
-pyjwt>=2.1.0
-cryptography>=35.0.0
-requests>=2.26.0
-```
-
 ## Virtual Environment
 
-To use the virtual environment, first activate it:
+It is highly recommended to use a virtual environment to manage project dependencies and avoid conflicts with other Python projects.
 
-```
-source venv/bin/activate
-``` 
+1.  **Create a virtual environment:**
+    If you don't have one yet, navigate to your project's root directory and run:
+    ```bash
+    python3 -m venv venv
+    ```
+    This command creates a directory named `venv` (you can choose another name) in your project, which will contain the Python interpreter and installed packages specific to this project.
+
+2.  **Activate the virtual environment:**
+    Before you install dependencies or run your project, you need to activate the environment.
+    *   On macOS and Linux:
+        ```bash
+        source venv/bin/activate
+        ```
+    *   On Windows (Command Prompt):
+        ```bash
+        venv\Scripts\activate.bat
+        ```
+    *   On Windows (PowerShell):
+        ```bash
+        venv\Scripts\Activate.ps1
+        ```
+    Once activated, your shell prompt will usually change to indicate the active environment (e.g., `(venv) Your-Prompt$`).
+
+3.  **Install dependencies:**
+    With the virtual environment active, install the required packages (as mentioned in the "Installation" section):
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+4.  **Deactivate the virtual environment:**
+    When you're finished working on the project, you can deactivate the environment by simply running:
+    ```bash
+    deactivate
+    ```
+    This will return you to your system's global Python environment. 
