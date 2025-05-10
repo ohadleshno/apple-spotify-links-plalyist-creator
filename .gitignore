@@ -4,4 +4,4 @@
 _chat.txt
 music_links.csv
 .python-version
-outputs/
+resources/*

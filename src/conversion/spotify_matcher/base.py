@@ -6,7 +6,7 @@ import os
 import re
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
-from src.apple_to_spotify.apple_music_parser import AppleMusicParser
+from src.apple_music.parser import AppleMusicParser
 
 
 class SpotifyMatcher:

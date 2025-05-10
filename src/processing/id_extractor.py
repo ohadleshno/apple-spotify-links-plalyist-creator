@@ -2,7 +2,7 @@ import re
 import os
 from urllib.parse import urlparse
 from dotenv import load_dotenv
-from src.cache_manager.output_cache import cache
+from src.cache_manager.file_manager import file_manager
 from src.cache_manager.file_constants import (
     MUSIC_LINKS_JSON,
     MUSIC_LINKS_CSV
@@ -15,12 +15,12 @@ def extract_links_from_file():
     """Extract all links from the CSV file"""
     try:
         # Read CSV using cache with header
-        csv_data = cache.read_csv(MUSIC_LINKS_CSV, has_header=True)
+        csv_data: list[dict[str, str]] = file_manager.read_csv(MUSIC_LINKS_CSV, has_header=True)
         # Get the first column (links) from each row
         links = []
-        for row in csv_data.values():
-            if row and row[0].strip():  # Check if row exists and first value is not empty
-                links.append(row[0].strip())
+
+        for row in csv_data:
+            links.append(row['Link'].strip())
         return links
     except Exception as e:
         print(f"Error reading CSV file: {e}")
@@ -106,12 +106,11 @@ def extract_spotify_ids(links):
 
 def save_to_json(data):
     """Save the extracted data to a JSON file"""
-    cache.write_json(MUSIC_LINKS_JSON, data)
-    print(f"Data saved to {MUSIC_LINKS_JSON}")
+    file_manager.write_json(MUSIC_LINKS_JSON, data)
 
 def main():
     # Check if input file exists
-    if not cache.file_exists(MUSIC_LINKS_CSV):
+    if not file_manager.file_exists(MUSIC_LINKS_CSV):
         print(f"File not found: {MUSIC_LINKS_CSV}")
         return
     

@@ -2,12 +2,12 @@ import os
 import sys
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
-from src.cache_manager.output_cache import cache
+from src.cache_manager.file_manager import file_manager
 from src.cache_manager.file_constants import MUSIC_LINKS_JSON, INVALID_ALBUM_IDS
 
 def load_json_data(file_path):
     """Load the extracted music data from the JSON file"""
-    return cache.read_json(file_path)
+    return file_manager.read_json(file_path)
 
 def create_spotify_playlist(spotify_data, playlist_name, description):
     """Create a Spotify playlist with the extracted tracks"""
@@ -104,7 +104,7 @@ def create_spotify_playlist(spotify_data, playlist_name, description):
             # Save invalid IDs to a file for future reference
             try:
                 invalid_data = {"invalid_album_ids": invalid_album_ids}
-                cache.write_json(INVALID_ALBUM_IDS, invalid_data)
+                file_manager.write_json(INVALID_ALBUM_IDS, invalid_data)
                 print("Invalid album IDs saved to invalid_album_ids.json")
             except Exception as e:
                 print(f"Error saving invalid album IDs: {e}")
@@ -117,7 +117,7 @@ def main():
     description = sys.argv[2] if len(sys.argv) > 2 else "Playlist created from my music collection"
 
     # Check if file exists
-    if not cache.file_exists(MUSIC_LINKS_JSON):
+    if not file_manager.file_exists(MUSIC_LINKS_JSON):
         print(f"File not found: {MUSIC_LINKS_JSON}")
         return
 

@@ -1,6 +1,6 @@
 import re
 from datetime import datetime
-from src.cache_manager.output_cache import cache
+from src.cache_manager.file_manager import file_manager
 from src.cache_manager.file_constants import MUSIC_LINKS_CSV, CHAT_EXPORT
 
 def extract_music_links():
@@ -17,7 +17,7 @@ def extract_music_links():
     
     # Read the file using cache
     try:
-        content = cache.read_text(CHAT_EXPORT)
+        content = file_manager.read_text(CHAT_EXPORT)
     except Exception as e:
         print(f"Error reading file: {e}")
         return None
@@ -72,7 +72,7 @@ def extract_music_links():
     try:
         csv_data = [['Link', 'Platform', 'Date']]  # Header
         csv_data.extend(all_unique_links)
-        cache.write_csv(MUSIC_LINKS_CSV, csv_data[1:], header=csv_data[0])
+        file_manager.write_csv(MUSIC_LINKS_CSV, csv_data[1:], header=csv_data[0])
         
         print(f"Successfully extracted {len(all_unique_links)} unique links to {MUSIC_LINKS_CSV}")
         print(f"- Apple Music: {apple_count}")
@@ -92,9 +92,9 @@ def clean_link(link):
     return link
 
 if __name__ == "__main__":
-    if not cache.file_exists(CHAT_EXPORT):
+    if not file_manager.file_exists(CHAT_EXPORT):
         print(f"File not found: {CHAT_EXPORT}")
     else:
         output_file = extract_music_links()
         if output_file:
-            print(f"CSV file created: {output_file}") 
+            pass 
