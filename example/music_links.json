@@ -1,0 +1,49 @@
+{
+  "apple_music": {
+    "links": [
+      "https://music.apple.com/il/album/stir-fry/1440907256?i=1440907394",
+      "https://music.apple.com/il/album/tower-of-song/511065875?i=511066231",
+      "https://music.apple.com/il/album/live-performance/1216838545?i=1216838554",
+      "https://music.apple.com/il/album/no-pension-modzitz/1766482250?i=1766482260",
+      "https://music.apple.com/il/album/givin-it-up/354686024?i=354686698",
+      "https://music.apple.com/il/album/la-prima-estate/676080788?i=676080867",
+      "https://music.apple.com/il/album/blind-faith/1193184594?i=1193184647",
+      "https://music.apple.com/il/album/i-build-a-world/921840820?i=921843905",
+      "https://music.apple.com/il/playlist/songs-id-spin-if-i-was-a-dj/pl.u-6mo416etBa7pKEW",
+      "https://music.apple.com/il/album/new-danville-girl-empire-burlesque-outtake/1576751982?i=1576752038"
+    ],
+    "ids": {
+      "tracks": [
+        "354686698",
+        "511066231",
+        "921843905",
+        "1193184647",
+        "1576752038",
+        "1216838554",
+        "1440907394",
+        "676080867",
+        "1766482260"
+      ],
+      "albums": [],
+      "playlists": [
+        "pl.u-6mo416etBa7pKEW"
+      ]
+    }
+  },
+  "spotify": {
+    "links": [
+      "https://open.spotify.com/track/6UwTR0kjCtlT4FMNtIvLac",
+      "https://open.spotify.com/episode/0OnmeFleo20eaLf56rrJYf",
+      "https://open.spotify.com/track/1pJHnQCWY4hn8ZWuNJ75jt"
+    ],
+    "ids": {
+      "tracks": [
+        "6UwTR0kjCtlT4FMNtIvLac",
+        "1pJHnQCWY4hn8ZWuNJ75jt"
+      ],
+      "albums": [],
+      "playlists": []
+    }
+  },
+  "other": []
+}

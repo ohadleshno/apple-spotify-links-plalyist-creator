@@ -1,0 +1,59 @@
+{
+  "matched": [
+    {
+      "apple_music_link": "https://music.apple.com/il/album/stir-fry/1440907256?i=1440907394",
+      "spotify_url": "https://open.spotify.com/track/2UVbBKQOdFAekPTRsnkzcf",
+      "type": "song"
+    },
+    {
+      "apple_music_link": "https://music.apple.com/il/album/tower-of-song/511065875?i=511066231",
+      "spotify_url": "https://open.spotify.com/track/5OpDM7JORZzXPo0YIN3vYq",
+      "type": "song"
+    },
+    {
+      "apple_music_link": "https://music.apple.com/il/album/live-performance/1216838545?i=1216838554",
+      "spotify_url": "https://open.spotify.com/track/3WaTrlgJofHvJyGFFgcnNk",
+      "type": "song"
+    },
+    {
+      "apple_music_link": "https://music.apple.com/il/album/no-pension-modzitz/1766482250?i=1766482260",
+      "spotify_url": "https://open.spotify.com/track/0qJbPIGxNkbINqiEWinQLA",
+      "type": "song"
+    },
+    {
+      "apple_music_link": "https://music.apple.com/il/album/givin-it-up/354686024?i=354686698",
+      "spotify_url": "https://open.spotify.com/track/6ZOpEQrrio8YIaKR25PsQq",
+      "type": "song"
+    },
+    {
+      "apple_music_link": "https://music.apple.com/il/album/la-prima-estate/676080788?i=676080867",
+      "spotify_url": "https://open.spotify.com/track/6vtG5IMWKidt5K54DCSUo6",
+      "type": "song"
+    },
+    {
+      "apple_music_link": "https://music.apple.com/il/album/blind-faith/1193184594?i=1193184647",
+      "spotify_url": "https://open.spotify.com/track/3Acu8ByXdcTsiXNu3DnuP6",
+      "type": "song"
+    },
+    {
+      "apple_music_link": "https://music.apple.com/il/album/i-build-a-world/921840820?i=921843905",
+      "spotify_url": "https://open.spotify.com/track/29XYr1fIGJIsNa6JCzQ6Vb",
+      "type": "song"
+    },
+    {
+      "apple_music_link": "https://music.apple.com/il/album/new-danville-girl-empire-burlesque-outtake/1576751982?i=1576752038",
+      "spotify_url": "https://open.spotify.com/track/2mtFuEkmXvFFirYgkPZqGQ",
+      "type": "song"
+    }
+  ],
+  "not_found": [
+    {
+      "apple_music_link": "https://music.apple.com/il/playlist/songs-id-spin-if-i-was-a-dj/pl.u-6mo416etBa7pKEW",
+      "apple_music_info": {
+        "url": "https://music.apple.com/il/playlist/songs-id-spin-if-i-was-a-dj/pl.u-6mo416etBa7pKEW",
+        "is_song": false,
+        "is_album": true
+      }
+    }
+  ]
+}

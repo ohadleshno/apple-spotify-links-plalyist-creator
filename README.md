@@ -1,92 +1,167 @@
-# Music Playlist Creator
+# Music Conversion REST API
 
-A tool for extracting music links from chat exports and creating Spotify playlists.
+A REST API that exposes the main features of the music conversion application.
 
-## Overview
+## Setup and Installation
 
-This application automates the process of:
-1. Extracting music links (Spotify, Apple Music, etc.) from chat exports
-2. Converting Apple Music links to their Spotify equivalents
-3. Creating a Spotify playlist with all the matched songs
-
-## Requirements
-
-- Python 3.6 or higher
-- Spotify Developer account (for API access)
-- A chat export file containing music links
-
-## Installation
-
-1. Clone this repository:
-   ```bash
-   git clone <repository-url>
-   cd music-playlist-creator
+1. Install the required dependencies:
    ```
-
-2. Set up a virtual environment (recommended):
-   ```bash
-   python -m venv venv
-   
-   # Activate on macOS/Linux
-   source venv/bin/activate
-   
-   # Activate on Windows (cmd)
-   venv\Scripts\activate.bat
-   
-   # Activate on Windows (PowerShell)
-   venv\Scripts\Activate.ps1
-   ```
-
-3. Install dependencies:
-   ```bash
    pip install -r requirements.txt
    ```
 
-## Configuration
-
-1. Create a `.env` file in the project root with your Spotify API credentials:
+2. Set up environment variables for Spotify API:
    ```
-   SPOTIPY_CLIENT_ID="your_spotify_client_id"
-   SPOTIPY_CLIENT_SECRET="your_spotify_client_secret"
-   SPOTIPY_REDIRECT_URI="http://localhost:8888/callback"
+   export SPOTIPY_CLIENT_ID='your-spotify-client-id'
+   export SPOTIPY_CLIENT_SECRET='your-spotify-client-secret'
+   export SPOTIPY_REDIRECT_URI='http://localhost:8888/callback'
+   ```
+   You can get these by creating an app at https://developer.spotify.com/dashboard/
+
+3. Run the API server:
+   ```
+   python src/api.py
    ```
 
-   To get these credentials:
-   - Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/)
-   - Create a new application
-   - Set the redirect URI to `http://localhost:8888/callback`
-   - Copy the Client ID and Client Secret to your `.env` file
+## API Endpoints
 
-2. Place your chat export file in the expected location:
-   - The default location is in the `resources` directory with the filename specified by the `CHAT_EXPORT` constant (check `src/cache_manager/file_constants.py` for the exact path)
+### 1. Extract Music Links
 
-## Usage
+Extract Apple Music and Spotify links from text content.
 
-Run the main pipeline with:
+**Endpoint:** `POST /api/extract-links`
 
-```bash
-python src/app/main.py
+**Request Body:**
+```json
+{
+  "content": "Check out this song https://music.apple.com/us/album/song-name/123456789?i=987654321 and this one https://open.spotify.com/track/abc123def456"
+}
 ```
 
-This will:
-1. Extract music links from your chat export
-2. Extract track IDs from those links
-3. Convert Apple Music links to Spotify and find matches
-4. Create a Spotify playlist with all matched tracks
+**Response:**
+```json
+{
+  "apple_music": ["https://music.apple.com/us/album/song-name/123456789?i=987654321"],
+  "spotify": ["https://open.spotify.com/track/abc123def456"],
+  "total": 2
+}
+```
 
-## How It Works
+### 2. Extract IDs
 
-1. **Link Extraction**: The application parses your chat export file to find and extract music links.
-2. **ID Extraction**: It processes these links to identify unique track identifiers for each song.
-3. **Platform Conversion**: Apple Music links are converted to their Spotify equivalents using matching algorithms.
-4. **Playlist Creation**: A Spotify playlist is created with all the matched tracks.
+Extract track, album, and playlist IDs from Apple Music and Spotify links.
 
-## Troubleshooting
+**Endpoint:** `POST /api/extract-ids`
 
-- **Missing chat export file**: Ensure your chat export is placed in the correct location.
-- **Authentication errors**: Verify your Spotify API credentials in the `.env` file.
-- **Browser opens but no playlist created**: Make sure to complete the Spotify authentication when the browser window opens.
+**Request Body:**
+```json
+{
+  "links": [
+    "https://music.apple.com/us/album/song-name/123456789?i=987654321",
+    "https://open.spotify.com/track/abc123def456"
+  ]
+}
+```
 
-## License
+**Response:**
+```json
+{
+  "apple_music": {
+    "links": ["https://music.apple.com/us/album/song-name/123456789?i=987654321"],
+    "ids": {
+      "tracks": ["987654321"],
+      "albums": ["123456789"],
+      "playlists": []
+    }
+  },
+  "spotify": {
+    "links": ["https://open.spotify.com/track/abc123def456"],
+    "ids": {
+      "tracks": ["abc123def456"],
+      "albums": [],
+      "playlists": []
+    }
+  },
+  "other": []
+}
+```
 
-[License information here] 
+### 3. Parse Apple Music
+
+Parse an Apple Music link to get track information.
+
+**Endpoint:** `POST /api/parse-apple-music`
+
+**Request Body:**
+```json
+{
+  "link": "https://music.apple.com/us/album/song-name/123456789?i=987654321"
+}
+```
+
+**Response:**
+```json
+{
+  "url": "https://music.apple.com/us/album/song-name/123456789?i=987654321",
+  "track_id": "987654321",
+  "is_song": true,
+  "track": "Song Name",
+  "artist": "Artist Name",
+  "album": "Album Name"
+}
+```
+
+### 4. Create Spotify Playlist
+
+Create a Spotify playlist from track and album IDs.
+
+**Endpoint:** `POST /api/create-spotify-playlist`
+
+**Request Body:**
+```json
+{
+  "track_ids": ["abc123def456", "ghi789jkl012"],
+  "album_ids": ["mno345pqr678"],
+  "name": "My Playlist",
+  "description": "A playlist created via API"
+}
+```
+
+**Response:**
+```json
+{
+  "playlist_id": "xyz987654321",
+  "playlist_url": "https://open.spotify.com/playlist/xyz987654321",
+  "tracks_added": 15,
+  "errors": []
+}
+```
+
+### 5. Convert Apple Music to Spotify
+
+Convert Apple Music links to Spotify tracks.
+
+**Endpoint:** `POST /api/convert-apple-to-spotify`
+
+**Request Body:**
+```json
+{
+  "links": [
+    "https://music.apple.com/us/album/song-name/123456789?i=987654321"
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "matches": [
+    {
+      "apple_music_link": "https://music.apple.com/us/album/song-name/123456789?i=987654321",
+      "spotify_id": "abc123def456",
+      "track": "Song Name",
+      "artist": "Artist Name"
+    }
+  ],
+  "no_matches": []
+}
+``` 

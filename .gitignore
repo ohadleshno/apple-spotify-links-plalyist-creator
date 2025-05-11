@@ -1,7 +1,5 @@
 .env
 .cache
 /venv
-_chat.txt
-music_links.csv
 .python-version
 resources/*
