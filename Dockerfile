@@ -1,35 +1,19 @@
-FROM python:3.10-slim
+FROM python:3.9-slim
 
 WORKDIR /app
 
-# Install curl for health checks
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements first for better caching
+# Copy requirements first to leverage Docker cache
 COPY requirements.txt .
-
-# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Install Playwright browsers
-RUN pip install playwright && python -m playwright install
-
-# Copy the entrypoint script and make it executable
-COPY docker-entrypoint.sh .
-RUN chmod +x docker-entrypoint.sh
 
 # Copy the rest of the application
 COPY . .
 
-# Expose port for the Flask application
-EXPOSE 5000
-
-# Set environment variables
-ENV PYTHONPATH=/app
-ENV FLASK_APP=src/api.py
+# Make the entrypoint script executable
+RUN chmod +x docker-entrypoint.sh
 
 # Set the entrypoint
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 
-# Command to run the application
-CMD ["python", "-m", "flask", "run", "--host=0.0.0.0"] 
+# Default command
+CMD ["flask", "run", "--host=0.0.0.0"] 

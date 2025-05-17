@@ -1,19 +1,20 @@
-import re
+from typing import Dict, List, Any, Tuple
 
-from flask import Flask, request, jsonify
+from dotenv import load_dotenv
+from flask import Flask, request, jsonify, Response
+from flask_cors import CORS
 
-from src.apple_music.parser import AppleMusicParser
-from src.conversion.spotify_matcher import SpotifyTrackMatcher
-from src.processing.id_extractor import separate_links, extract_apple_music_ids, \
-    extract_spotify_ids
 from src.processing.link_extractor import extract_links_from_content
-from src.spotify.playlist_creator import create_spotify_playlist
+from src.processing.music_processor import process_music_content, create_playlist
 
+# Load environment variables from .env file
+load_dotenv()
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 
 @app.route('/health', methods=['GET'])
-def health_check():
+def health_check() -> Response:
     """Simple health check endpoint"""
     return jsonify({
         'status': 'ok',
@@ -22,17 +23,17 @@ def health_check():
 
 
 @app.route('/api/extract-links', methods=['POST'])
-def api_extract_links():
+def api_extract_links() -> Tuple[Response, int]:
     """Extract unique music links from text content."""
     if not request.json or 'content' not in request.json:
         return jsonify({'error': 'No content provided'}), 400
 
-    content = request.json['content']
+    content: str = request.json['content']
 
     extracted_data = extract_links_from_content(content)
 
-    apple_links = set()
-    spotify_links = set()
+    apple_links: set = set()
+    spotify_links: set = set()
 
     for link, platform, _ in extracted_data: # Date is ignored here as per original endpoint
         if platform == "Apple Music":
@@ -47,132 +48,85 @@ def api_extract_links():
     })
 
 
-@app.route('/api/extract-links-from-file', methods=['POST'])
-def api_extract_links_from_file():
-    """Extract music links from an uploaded text file, including dates."""
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file part in the request'}), 400
+@app.route('/api/process-music-links', methods=['POST'])
+def api_process_music_links() -> Tuple[Response, int]:
+    """
+    Process content with music links and return detailed information.
     
-    file = request.files['file']
+    Request body:
+    {
+        "content": string  # Text content containing music links
+    }
     
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
+    Response:
+    {
+        "results": [
+            {
+                "original_link": string,
+                "platform": string,       # "Apple Music" or "Spotify"
+                "type": string,           # "song" or "album"
+                "title": string,          # Track or album title (may be null)
+                "artist": string,         # Artist name (may be null)
+                "album": string,          # Album name (may be null)
+                "apple_music_link": string,
+                "spotify_link": string    # May be null if no match found
+            },
+            ...
+        ],
+        "total": int
+    }
+    """
+    if not request.json or 'content' not in request.json:
+        return jsonify({'error': 'No content provided'}), 400
+
+    content: str = request.json['content']
+    result: Dict[str, Any] = process_music_content(content)
+    return jsonify(result)
+
+
+@app.route('/api/create-playlist-from-links', methods=['POST'])
+def api_create_playlist_from_links() -> Tuple[Response, int]:
+    """
+    Create a Spotify playlist directly from links.
     
-    if file:
-        try:
-            # Read file content as string
-            content = file.read().decode('utf-8')
-            
-            # Use the refactored function from link_extractor
-            extracted_data = extract_links_from_content(content)
-            
-            # Format the data for JSON response
-            # The function returns a list of tuples: (link, platform, date)
-            # We can convert this to a list of dictionaries for better JSON readability
-            formatted_data = [
-                {"link": item[0], "platform": item[1], "date": item[2]}
-                for item in extracted_data
-            ]
-            
-            return jsonify({
-                'extracted_links': formatted_data,
-                'total_found': len(formatted_data)
-            })
-            
-        except Exception as e:
-            return jsonify({'error': f'Error processing file: {str(e)}'}), 500
-            
-    return jsonify({'error': 'Unknown error occurred'}), 500
-
-
-@app.route('/api/extract-ids', methods=['POST'])
-def api_extract_ids():
-    """Extract IDs from music links"""
-    if not request.json or 'links' not in request.json:
-        return jsonify({'error': 'No links provided'}), 400
-
-    links = request.json['links']
-
-    # Use existing functions
-    apple_music_links, spotify_links, other_links = separate_links(links)
-    apple_music_ids = extract_apple_music_ids(apple_music_links)
-    spotify_ids = extract_spotify_ids(spotify_links)
-
-    return jsonify({
-        'apple_music': {
-            'links': apple_music_links,
-            'ids': apple_music_ids
-        },
-        'spotify': {
-            'links': spotify_links,
-            'ids': spotify_ids
-        },
-        'other': other_links
-    })
-
-
-@app.route('/api/parse-apple-music', methods=['POST'])
-def api_parse_apple_music():
-    """Parse Apple Music links to get track information"""
-    if not request.json or 'link' not in request.json:
-        return jsonify({'error': 'No link provided'}), 400
-
-    link = request.json['link']
-
-    # Use existing AppleMusicParser
-    track_info = AppleMusicParser.get_track_info(link)
-    return jsonify(track_info)
-
-
-@app.route('/api/create-spotify-playlist', methods=['POST'])
-def api_create_spotify_playlist():
-    """Create a Spotify playlist from track and album IDs"""
-    if not request.json:
-        return jsonify({'error': 'No data provided'}), 400
-
-    # Prepare spotify_data structure expected by create_spotify_playlist
-    spotify_data = {
-        'ids': {
-            'tracks': request.json.get('track_ids', []),
-            'albums': request.json.get('album_ids', [])
+    Request body:
+    {
+        "links": List[string],           # Array of Apple Music and Spotify links
+        "name": string,                  # Optional playlist name
+        "description": string            # Optional playlist description
+    }
+    
+    Response on success:
+    {
+        "playlist_id": string,
+        "playlist_url": string,
+        "success": true,
+        "stats": {
+            "total_links": int,
+            "spotify_links": int,
+            "apple_music_links": int,
+            "other_links": int,
+            "matched_apple_music": int,
+            "total_tracks": int,
+            "total_albums": int
         }
     }
-
-    playlist_name = request.json.get('name', 'API Created Playlist')
-    description = request.json.get('description', 'Playlist created through API')
-
-    # Call the existing function
-    playlist_id = create_spotify_playlist(spotify_data, playlist_name, description)
-
-    if playlist_id:
-        return jsonify({
-            'playlist_id': playlist_id,
-            'playlist_url': f'https://open.spotify.com/playlist/{playlist_id}',
-            'success': True
-        })
-    else:
-        return jsonify({'error': 'Failed to create playlist'}), 500
-
-
-@app.route('/api/convert-apple-to-spotify', methods=['POST'])
-def api_convert_apple_to_spotify():
-    """Convert Apple Music links to Spotify tracks"""
+    
+    Response on failure:
+    {
+        "error": string,
+        "success": false
+    }
+    """
     if not request.json or 'links' not in request.json:
         return jsonify({'error': 'No links provided'}), 400
-
-    apple_music_links = request.json['links']
-
-    # Call SpotifyTrackMatcher directly instead of using the converter
-    # which expects a file path
-    matcher = SpotifyTrackMatcher()
-
-    # Find Spotify equivalents
-    results = matcher.find_equivalents(apple_music_links)
-
-    if not results:
-        return jsonify({'error': 'Failed to find any matches'}), 400
-
-    return jsonify(results)
+    
+    links: List[str] = request.json['links']
+    playlist_name: str = request.json.get('name', 'API Created Playlist')
+    description: str = request.json.get('description', 'Playlist created through API')
+    
+    result: Dict[str, Any] = create_playlist(links, playlist_name, description)
+    return jsonify(result) if result.get('success') else (jsonify(result), 500)
 
 
 if __name__ == '__main__':

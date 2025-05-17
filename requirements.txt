@@ -8,3 +8,4 @@ bs4~=0.0.2
 dotenv~=0.9.9
 playwright~=1.52.0
 flask>=2.0.0
+flask-cors>=6.0.0
