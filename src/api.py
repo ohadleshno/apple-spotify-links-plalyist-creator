@@ -12,6 +12,15 @@ from src.spotify.playlist_creator import create_spotify_playlist
 app = Flask(__name__)
 
 
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Simple health check endpoint"""
+    return jsonify({
+        'status': 'ok',
+        'message': 'API is running'
+    })
+
+
 @app.route('/api/extract-links', methods=['POST'])
 def api_extract_links():
     """Extract unique music links from text content."""

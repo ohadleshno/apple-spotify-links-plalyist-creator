@@ -4,6 +4,8 @@ A REST API that exposes the main features of the music conversion application.
 
 ## Setup and Installation
 
+### Option 1: Standard Setup
+
 1. Install the required dependencies:
    ```
    pip install -r requirements.txt
@@ -21,6 +23,20 @@ A REST API that exposes the main features of the music conversion application.
    ```
    python src/api.py
    ```
+
+### Option 2: Docker Deployment
+
+1. Copy the `env.example` file to `.env` and fill in your Spotify API credentials:
+   ```
+   cp env.example .env
+   ```
+
+2. Build and run the Docker container:
+   ```
+   docker-compose up --build
+   ```
+
+3. For production deployment, update the environment variables in the docker-compose.yml file or pass them at runtime.
 
 ## API Endpoints
 
